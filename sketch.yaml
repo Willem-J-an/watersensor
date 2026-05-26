@@ -1,0 +1,2 @@
+default_fqbn: esp32:esp32:esp32c6:CDCOnBoot=cdc,ZigbeeMode=ed,PartitionScheme=zigbee
+default_port: /dev/cu.usbmodem101
