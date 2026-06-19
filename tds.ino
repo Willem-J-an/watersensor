@@ -41,7 +41,7 @@ void setup() {
   zbFlowSensor.setAnalogInputApplication(ESP_ZB_ZCL_AI_APP_TYPE_FLOW);
   Zigbee.addEndpoint(&zbFlowSensor);
 
-  zbTempSensor.setMinMaxValue(0, 30);
+  zbTempSensor.setMinMaxValue(0, 100);
   zbTempSensor.setDefaultValue(10.0);
   zbTempSensor.setTolerance(0.1);
   Zigbee.addEndpoint(&zbTempSensor);
@@ -61,10 +61,10 @@ void setup() {
   }
   Serial.println("Connected!");
   for (int i = 0; i < 3; i++) {
-    zbTds[i].setAnalogInputReporting(0, 3600, 5);
+    zbTds[i].setAnalogInputReporting(0, 3600, 1);
   }
   zbFlowSensor.setAnalogInputReporting(0, 3600, 0.01);
-  zbTempSensor.setReporting(0, 3600, 0.1);
+  zbTempSensor.setReporting(0, 3600, 1);
   Serial.println("Sensor started!");
 }
 
@@ -72,7 +72,7 @@ void loop() {
   static uint32_t flowTimeCounter = 0;
   static uint32_t timeCounter = 0;
   static uint8_t interval = 100;
-  if (!(flowTimeCounter++ % 20) ) { // 2 sec
+  if (!(flowTimeCounter++ % 2000) ) { // 2 sec
     float flowRate = getFlowRate();
     if (flowRate != prevFlowRate) {
       Serial.printf("Flowrate: %.2f L/min\n", flowRate);
@@ -81,7 +81,7 @@ void loop() {
     }
   }
 
-  if (!(timeCounter++ % 600)) { // 60 sec
+  if (!(timeCounter++ % 60000)) { // 60 sec
     float temp = getTemp();
     Serial.printf("Temp: %.2f °C\n", temp);
     zbTempSensor.setTemperature(temp);
@@ -109,5 +109,5 @@ void loop() {
     }
   }
 
-  delay(100);
+  delay(1);
 }

@@ -42,7 +42,7 @@ Pins modulePins[3] = {
 void tdsSensorSetup() {
   for (int i = 0; i < 3; i++) {
     pinMode(modulePins[i].power, OUTPUT);
-    analogSetPinAttenuation(modulePins[i].tds, ADC_2_5db);
+    // analogSetPinAttenuation(modulePins[i].tds, ADC_2_5db);
   }
   analogReadResolution(12);
 }
@@ -52,28 +52,29 @@ void flowRateSetup() {
   attachInterrupt(digitalPinToInterrupt(S3_FLOWRATE), flowPulseCounter, FALLING);
 }
 
-TdsData tdsSensorRead(float temp){
+TdsData tdsSensorRead(float temp) {
   TdsData result;
   for (int i = 0; i < 3; i++) {
     digitalWrite(modulePins[i].power, HIGH);
     delay(500);
-    long sum = 0;
+    
+    long sumMv = 0;
     for(int ii = 0; ii < 30; ii++) {
-      sum += analogRead(modulePins[i].tds);
+      sumMv += analogReadMilliVolts(modulePins[i].tds);
       delay(10);
     }
+    
     digitalWrite(modulePins[i].power, LOW);
+    delay(500);
 
-    float averageRaw = sum / 30.0;
-    float rawVoltage = (averageRaw * VREF) / ADC_RES;
-    float voltage = rawVoltage * (5.0 / 1.1);
+    float voltage = (sumMv / 30.0) / 1000.0;
 
     float compensationFactor = 1.0 + TEMP_COEFFICIENT * (temp - STD_TEMP);
     float compensationVoltage = voltage / compensationFactor;
-
-    result.values[i] = (133.42 * pow(compensationVoltage, 3)
-                  - 255.86 * pow(compensationVoltage, 2)
-                  + 857.39 * compensationVoltage) * 0.5 * modulePins[i].calibration;
+    float correctedVoltage = compensationVoltage * (5.0/3.3);
+    result.values[i] = (133.42 * pow(correctedVoltage, 3)
+                      - 255.86 * pow(correctedVoltage, 2)
+                      + 857.39 * correctedVoltage) * 0.5 * modulePins[i].calibration;
   }
   return result;
 }
